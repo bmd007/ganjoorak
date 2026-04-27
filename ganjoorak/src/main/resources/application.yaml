@@ -1,0 +1,14 @@
+spring:
+  application:
+    name: ganjoorak
+  datasource:
+    url: jdbc:sqlite::resource:ganjoor.s3db
+    driver-class-name: org.sqlite.JDBC
+    hikari:
+      maximum-pool-size: 1
+      connection-test-query: SELECT 1
+server:
+  compression:
+    enabled: true
+    mime-types: application/json,text/html,text/css,application/javascript
+    min-response-size: 1024
