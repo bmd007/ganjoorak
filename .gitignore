@@ -74,6 +74,6 @@ libopenal.dylib
 **/.scala-build/**
 
 ### Ganjoorak ###
-ganjoorak/src/main/resources/static/
+ganjoorak/src/main/resources/static/vite/
 ganjoorak/frontend/node_modules/
 ganjoorak/frontend/dist/
