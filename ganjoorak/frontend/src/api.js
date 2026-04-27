@@ -44,12 +44,12 @@ export function createPoet(name, description) {
   return postJson('/admin/poets', { name, description })
 }
 
-export function createPoem(poetId, categoryId, title, verses) {
-  return postJson('/admin/poems', { poetId, categoryId, title, verses })
+export function createPoem(poetId, title, verses) {
+  return postJson('/admin/poems', { poetId, title, verses })
 }
 
-export function updatePoem(id, poetId, categoryId, title, verses) {
-  return postJson(`/admin/poems/${id}`, { poetId, categoryId, title, verses }, 'PUT')
+export function updatePoem(id, poetId, title, verses) {
+  return postJson(`/admin/poems/${id}`, { poetId, title, verses }, 'PUT')
 }
 
 export async function deletePoem(id) {

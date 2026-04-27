@@ -31,13 +31,13 @@ class AdminController {
     }
 
     record Couplet(String first, String second) {}
-    record CreatePoemRequest(int poetId, Integer categoryId, String title, List<Couplet> verses) {}
+    record CreatePoemRequest(int poetId, String title, List<Couplet> verses) {}
 
     @PostMapping("/poems")
     Map<String, Object> createPoem(@RequestBody CreatePoemRequest request) {
-        var poet = repo.findPoetById(request.poetId())
+        repo.findPoetById(request.poetId())
                 .orElseThrow(() -> new IllegalArgumentException("Poet not found"));
-        int catId = request.categoryId() != null ? request.categoryId() : poet.catId();
+        int catId = repo.findOrCreateInformalCategory(request.poetId());
         var slug = request.title().replaceAll("\\s+", "-");
         int poemId = repo.insertPoem(catId, request.title(), "/" + slug);
         int vorder = 0;

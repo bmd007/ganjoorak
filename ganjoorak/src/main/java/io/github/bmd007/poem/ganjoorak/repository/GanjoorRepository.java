@@ -226,11 +226,22 @@ public class GanjoorRepository {
         return jdbc.sql("""
                         SELECT COUNT(*) FROM poem p
                         JOIN cat c ON p.cat_id = c.id
-                        JOIN poet pt ON c.poet_id = pt.id
-                        WHERE p.id = :poemId AND pt.name = 'غیررسمی'""")
+                        WHERE p.id = :poemId AND c.text = 'غیررسمی'""")
                 .param("poemId", poemId)
                 .query((rs, _) -> rs.getInt(1))
                 .single() > 0;
+    }
+
+    public int findOrCreateInformalCategory(int poetId) {
+        var poet = findPoetById(poetId).orElseThrow();
+        var existing = jdbc.sql("SELECT id FROM cat WHERE poet_id = :poetId AND text = 'غیررسمی'")
+                .param("poetId", poetId)
+                .query((rs, _) -> rs.getInt("id"))
+                .optional();
+        if (existing.isPresent()) {
+            return existing.get();
+        }
+        return insertCategory(poetId, "غیررسمی", poet.catId(), "/informal-" + poetId);
     }
 
     public void updateCategoryPoetId(int catId, int poetId) {

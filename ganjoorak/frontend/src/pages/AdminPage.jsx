@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { getPoets, getPoet, getPoem, createPoet, createPoem, updatePoem } from '../api'
+import { getPoets, getPoem, createPoet, createPoem, updatePoem } from '../api'
 
 export default function AdminPage() {
   const navigate = useNavigate()
@@ -132,8 +132,6 @@ function versesToText(verses) {
 
 function PoemForm({ poets, defaultPoetId, editPoemId, onCreated }) {
   const [poetId, setPoetId] = useState(defaultPoetId)
-  const [categories, setCategories] = useState([])
-  const [categoryId, setCategoryId] = useState('')
   const [title, setTitle] = useState('')
   const [versesText, setVersesText] = useState('')
   const [saving, setSaving] = useState(false)
@@ -144,16 +142,10 @@ function PoemForm({ poets, defaultPoetId, editPoemId, onCreated }) {
     getPoem(editPoemId).then(data => {
       setTitle(data.poem.title)
       setPoetId(String(data.poet.id))
-      setCategoryId(String(data.poem.catId))
       setVersesText(versesToText(data.verses))
       setLoadingEdit(false)
     })
   }, [editPoemId])
-
-  useEffect(() => {
-    if (!poetId) { setCategories([]); return }
-    getPoet(poetId).then(data => setCategories(data.categories))
-  }, [poetId])
 
   const couplets = parseCouplets(versesText)
   const lineCount = versesText.split('\n').filter(l => l.trim()).length
@@ -165,21 +157,10 @@ function PoemForm({ poets, defaultPoetId, editPoemId, onCreated }) {
     setSaving(true)
     try {
       if (editPoemId) {
-        await updatePoem(
-          Number(editPoemId),
-          Number(poetId),
-          categoryId ? Number(categoryId) : null,
-          title.trim(),
-          couplets,
-        )
+        await updatePoem(Number(editPoemId), Number(poetId), title.trim(), couplets)
         onCreated(Number(editPoemId))
       } else {
-        const result = await createPoem(
-          Number(poetId),
-          categoryId ? Number(categoryId) : null,
-          title.trim(),
-          couplets,
-        )
+        const result = await createPoem(Number(poetId), title.trim(), couplets)
         onCreated(result.id)
       }
     } finally {
@@ -193,32 +174,18 @@ function PoemForm({ poets, defaultPoetId, editPoemId, onCreated }) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4 bg-white dark:bg-stone-800/30 rounded-2xl border border-stone-200 dark:border-stone-700/50 p-6">
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <label className="block text-sm font-medium text-stone-700 dark:text-stone-300 mb-1">شاعر</label>
-          <select
-            value={poetId}
-            onChange={e => { setPoetId(e.target.value); setCategoryId('') }}
-            className="w-full px-4 py-2 rounded-xl bg-stone-100 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
-            required
-            disabled={!!editPoemId}
-          >
-            <option value="">انتخاب کنید...</option>
-            {poets.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
-          </select>
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-stone-700 dark:text-stone-300 mb-1">دسته‌بندی</label>
-          <select
-            value={categoryId}
-            onChange={e => setCategoryId(e.target.value)}
-            className="w-full px-4 py-2 rounded-xl bg-stone-100 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
-            disabled={!poetId || !!editPoemId}
-          >
-            <option value="">دسته اصلی</option>
-            {categories.map(c => <option key={c.id} value={c.id}>{c.text}</option>)}
-          </select>
-        </div>
+      <div>
+        <label className="block text-sm font-medium text-stone-700 dark:text-stone-300 mb-1">شاعر</label>
+        <select
+          value={poetId}
+          onChange={e => setPoetId(e.target.value)}
+          className="w-full px-4 py-2 rounded-xl bg-stone-100 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+          required
+          disabled={!!editPoemId}
+        >
+          <option value="">انتخاب کنید...</option>
+          {poets.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+        </select>
       </div>
 
       <div>
