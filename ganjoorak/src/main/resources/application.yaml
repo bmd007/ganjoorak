@@ -19,7 +19,7 @@ spring:
     client:
       factory: jdk
   datasource:
-    url: jdbc:sqlite::resource:ganjoor.s3db
+    url: jdbc:sqlite:ganjoor.s3db
     driver-class-name: org.sqlite.JDBC
     hikari:
       maximum-pool-size: 1

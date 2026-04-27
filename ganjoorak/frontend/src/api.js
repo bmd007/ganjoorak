@@ -30,6 +30,24 @@ export function search(q, limit = 50) {
   return fetchJson(`/search?q=${encodeURIComponent(q)}&limit=${limit}`)
 }
 
+async function postJson(path, body) {
+  const res = await fetch(`${BASE}${path}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  })
+  if (!res.ok) throw new Error(`API error: ${res.status}`)
+  return res.json()
+}
+
+export function createPoet(name, description) {
+  return postJson('/admin/poets', { name, description })
+}
+
+export function createPoem(poetId, categoryId, title, verses) {
+  return postJson('/admin/poems', { poetId, categoryId, title, verses })
+}
+
 export async function chatWithPoem(poemId, message, history, onChunk) {
   const res = await fetch(`${BASE}/poems/${poemId}/chat`, {
     method: 'POST',

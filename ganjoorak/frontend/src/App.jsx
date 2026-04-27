@@ -8,6 +8,7 @@ import CategoryPage from './pages/CategoryPage'
 import PoemPage from './pages/PoemPage'
 import SearchPage from './pages/SearchPage'
 import BookmarksPage from './pages/BookmarksPage'
+import AdminPage from './pages/AdminPage'
 
 export default function App() {
   const [dark, toggleDark] = useDarkMode()

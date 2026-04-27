@@ -164,4 +164,54 @@ public class GanjoorRepository {
                 .query((rs, _) -> rs.getInt(1))
                 .single();
     }
+
+    public int insertCategory(int poetId, String text, int parentId, String url) {
+        jdbc.sql("INSERT INTO cat (poet_id, text, parent_id, url) VALUES (:poetId, :text, :parentId, :url)")
+                .param("poetId", poetId)
+                .param("text", text)
+                .param("parentId", parentId)
+                .param("url", url)
+                .update();
+        return lastInsertId();
+    }
+
+    public int insertPoet(String name, String description, int catId) {
+        jdbc.sql("INSERT INTO poet (name, cat_id, description) VALUES (:name, :catId, :description)")
+                .param("name", name)
+                .param("catId", catId)
+                .param("description", description)
+                .update();
+        return lastInsertId();
+    }
+
+    public int insertPoem(int catId, String title, String url) {
+        jdbc.sql("INSERT INTO poem (cat_id, title, url) VALUES (:catId, :title, :url)")
+                .param("catId", catId)
+                .param("title", title)
+                .param("url", url)
+                .update();
+        return lastInsertId();
+    }
+
+    public void insertVerse(int poemId, int vorder, int position, String text) {
+        jdbc.sql("INSERT INTO verse (poem_id, vorder, position, text) VALUES (:poemId, :vorder, :position, :text)")
+                .param("poemId", poemId)
+                .param("vorder", vorder)
+                .param("position", position)
+                .param("text", text)
+                .update();
+    }
+
+    public void updateCategoryPoetId(int catId, int poetId) {
+        jdbc.sql("UPDATE cat SET poet_id = :poetId WHERE id = :catId")
+                .param("poetId", poetId)
+                .param("catId", catId)
+                .update();
+    }
+
+    private int lastInsertId() {
+        return jdbc.sql("SELECT last_insert_rowid()")
+                .query((rs, _) -> rs.getInt(1))
+                .single();
+    }
 }
