@@ -35,7 +35,7 @@ export default function PoetPage() {
             </h1>
             {slug && (
               <a
-                href={`/api/booklets/${slug}`}
+                href={`/booklets/${slug}.epub`}
                 className="inline-flex items-center gap-1.5 mt-2 text-sm text-primary-600 dark:text-primary-400 hover:underline"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>

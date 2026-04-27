@@ -5,14 +5,9 @@ import io.github.bmd007.poem.ganjoorak.model.Poem;
 import io.github.bmd007.poem.ganjoorak.model.Poet;
 import io.github.bmd007.poem.ganjoorak.model.Verse;
 import io.github.bmd007.poem.ganjoorak.repository.GanjoorRepository;
-import org.springframework.core.io.FileSystemResource;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -22,7 +17,6 @@ import static org.springframework.http.HttpStatus.NOT_FOUND;
 @RestController
 @RequestMapping("/api")
 class ApiController {
-    private static final Path BOOKLETS_DIR = Path.of(System.getProperty("user.dir")).resolve("../booklets").normalize();
     private final GanjoorRepository repo;
 
     ApiController(GanjoorRepository repo) {
@@ -78,19 +72,6 @@ class ApiController {
         var poems = repo.searchPoems(wrappedQuery, limit);
         var verses = repo.searchVerses(wrappedQuery, limit);
         return Map.of("poems", poems, "verses", verses);
-    }
-
-    @GetMapping("/booklets/{slug}")
-    ResponseEntity<FileSystemResource> getBooklet(@PathVariable String slug) {
-        var file = BOOKLETS_DIR.resolve(slug + ".epub");
-        var resource = new FileSystemResource(file);
-        if (!resource.exists()) {
-            throw new ResponseStatusException(NOT_FOUND, "Booklet not found");
-        }
-        return ResponseEntity.ok()
-                .contentType(MediaType.parseMediaType("application/epub+zip"))
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + slug + ".epub\"")
-                .body(resource);
     }
 
     private Map<String, Object> buildPoemResponse(int poemId) {
