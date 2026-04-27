@@ -54,9 +54,9 @@ export default function PoemChat({ poemId }) {
         </h3>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-4 space-y-4 min-h-48 max-h-[60vh]">
+      <div className={`overflow-y-auto p-4 space-y-4 ${messages.length > 0 ? 'min-h-32 max-h-[60vh]' : ''}`}>
         {messages.length === 0 && (
-          <p className="text-center text-stone-400 dark:text-stone-500 text-sm py-8">
+          <p className="text-center text-stone-400 dark:text-stone-500 text-sm py-2">
             درباره معنی، زمینه تاریخی، یا آرایه‌های ادبی این شعر بپرسید
           </p>
         )}

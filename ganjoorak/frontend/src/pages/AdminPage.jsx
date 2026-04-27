@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { getPoets, getPoem, createPoet, createPoem, updatePoem } from '../api'
+import { useToast } from '../components/Toast'
 
 export default function AdminPage() {
   const navigate = useNavigate()
+  const toast = useToast()
   const [searchParams] = useSearchParams()
   const [poets, setPoets] = useState([])
   const [tab, setTab] = useState('poem')
@@ -45,20 +47,30 @@ export default function AdminPage() {
         </div>
       )}
 
-      {!editPoemId && tab === 'poet' && <PoetForm onCreated={poet => { setPoets(prev => [...prev, poet]); setTab('poem') }} />}
+      {!editPoemId && tab === 'poet' && (
+        <PoetForm onCreated={poet => {
+          setPoets(prev => [...prev, poet])
+          toast('شاعر با موفقیت ذخیره شد')
+          setTab('poem')
+        }} onError={msg => toast(msg, 'error')} />
+      )}
       {(editPoemId || tab === 'poem') && (
         <PoemForm
           poets={poets}
           defaultPoetId={preselectedPoetId}
           editPoemId={editPoemId}
-          onCreated={id => navigate(`/poem/${id}`)}
+          onCreated={id => {
+            toast(editPoemId ? 'شعر با موفقیت بروزرسانی شد' : 'شعر با موفقیت ذخیره شد')
+            navigate(`/poem/${id}`)
+          }}
+          onError={msg => toast(msg, 'error')}
         />
       )}
     </div>
   )
 }
 
-function PoetForm({ onCreated }) {
+function PoetForm({ onCreated, onError }) {
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
   const [saving, setSaving] = useState(false)
@@ -72,6 +84,8 @@ function PoetForm({ onCreated }) {
       onCreated({ id: result.id, name: name.trim(), catId: result.catId })
       setName('')
       setDescription('')
+    } catch {
+      onError('خطا در ذخیره شاعر')
     } finally {
       setSaving(false)
     }
@@ -130,7 +144,7 @@ function versesToText(verses) {
   return lines.join('\n')
 }
 
-function PoemForm({ poets, defaultPoetId, editPoemId, onCreated }) {
+function PoemForm({ poets, defaultPoetId, editPoemId, onCreated, onError }) {
   const [poetId, setPoetId] = useState(defaultPoetId)
   const [title, setTitle] = useState('')
   const [versesText, setVersesText] = useState('')
@@ -163,6 +177,8 @@ function PoemForm({ poets, defaultPoetId, editPoemId, onCreated }) {
         const result = await createPoem(Number(poetId), title.trim(), couplets)
         onCreated(result.id)
       }
+    } catch {
+      onError('خطا در ذخیره شعر')
     } finally {
       setSaving(false)
     }

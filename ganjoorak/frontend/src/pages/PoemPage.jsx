@@ -7,10 +7,12 @@ import Breadcrumb from '../components/Breadcrumb'
 import VerseDisplay from '../components/VerseDisplay'
 import { Arabesque, CarpetBorder, GeometricTile } from '../components/PersianOrnament'
 import PoemChat from '../components/PoemChat'
+import { useToast } from '../components/Toast'
 
 export default function PoemPage({ random }) {
   const { id } = useParams()
   const navigate = useNavigate()
+  const toast = useToast()
   const [data, setData] = useState(null)
   const [loading, setLoading] = useState(true)
   const { toggle, isBookmarked } = useBookmarks()
@@ -41,13 +43,6 @@ export default function PoemPage({ random }) {
     })
   }
 
-  function handleRandom() {
-    setLoading(true)
-    getRandomPoem().then(d => {
-      setData(d)
-      window.history.pushState(null, '', `/poem/${d.poem.id}`)
-    }).finally(() => setLoading(false))
-  }
 
   return (
     <div>
@@ -65,6 +60,11 @@ export default function PoemPage({ random }) {
             >
               {poet.name}
             </Link>
+            {informal && (
+              <span className="inline-block mr-2 px-2 py-0.5 rounded-md bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 text-xs font-medium">
+                غیررسمی
+              </span>
+            )}
           </div>
           <div className="flex items-center gap-1 shrink-0">
             {informal && (
@@ -79,7 +79,13 @@ export default function PoemPage({ random }) {
                   </svg>
                 </Link>
                 <button
-                  onClick={() => { if (confirm('آیا از حذف این شعر مطمئنید؟')) deletePoem(poem.id).then(() => navigate('/')) }}
+                  onClick={() => {
+                    if (confirm('آیا از حذف این شعر مطمئنید؟')) {
+                      deletePoem(poem.id)
+                        .then(() => { toast('شعر با موفقیت حذف شد'); navigate('/') })
+                        .catch(() => toast('خطا در حذف شعر', 'error'))
+                    }
+                  }}
                   className="p-2 rounded-lg text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
                   title="حذف"
                 >
@@ -100,15 +106,6 @@ export default function PoemPage({ random }) {
             >
               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill={bookmarked ? 'currentColor' : 'none'} viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
-              </svg>
-            </button>
-            <button
-              onClick={handleRandom}
-              className="p-2 rounded-lg text-stone-400 hover:bg-stone-100 dark:hover:bg-stone-800 transition-colors"
-              title="شعر تصادفی"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
               </svg>
             </button>
           </div>

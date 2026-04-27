@@ -40,11 +40,10 @@ class AdminController {
         int catId = repo.findOrCreateInformalCategory(request.poetId());
         var slug = request.title().replaceAll("\\s+", "-");
         int poemId = repo.insertPoem(catId, request.title(), "/" + slug);
-        int vorder = 0;
+        int vorder = 1;
         for (var couplet : request.verses()) {
-            repo.insertVerse(poemId, vorder, 0, couplet.first());
-            repo.insertVerse(poemId, vorder, 1, couplet.second());
-            vorder++;
+            repo.insertVerse(poemId, vorder++, 0, couplet.first());
+            repo.insertVerse(poemId, vorder++, 1, couplet.second());
         }
         return Map.of("id", poemId);
     }
@@ -55,11 +54,10 @@ class AdminController {
         var slug = request.title().replaceAll("\\s+", "-");
         repo.updatePoem(id, request.title(), "/" + slug);
         repo.deleteVersesByPoemId(id);
-        int vorder = 0;
+        int vorder = 1;
         for (var couplet : request.verses()) {
-            repo.insertVerse(id, vorder, 0, couplet.first());
-            repo.insertVerse(id, vorder, 1, couplet.second());
-            vorder++;
+            repo.insertVerse(id, vorder++, 0, couplet.first());
+            repo.insertVerse(id, vorder++, 1, couplet.second());
         }
         return Map.of("id", id);
     }
