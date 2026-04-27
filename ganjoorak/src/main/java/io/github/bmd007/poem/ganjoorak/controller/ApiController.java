@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -83,12 +84,14 @@ class ApiController {
         var poet = repo.findPoetById(category.poetId())
                 .orElseThrow(() -> new ResponseStatusException(NOT_FOUND, "Poet not found"));
         var breadcrumb = buildBreadcrumb(poem.catId());
-        return Map.of(
-                "poem", poem,
-                "verses", verses,
-                "poet", poet,
-                "category", category,
-                "breadcrumb", breadcrumb);
+        var result = new HashMap<String, Object>();
+        result.put("poem", poem);
+        result.put("verses", verses);
+        result.put("poet", poet);
+        result.put("category", category);
+        result.put("breadcrumb", breadcrumb);
+        result.put("informal", repo.isPoemInformal(poemId));
+        return result;
     }
 
     private List<Category> buildBreadcrumb(int categoryId) {

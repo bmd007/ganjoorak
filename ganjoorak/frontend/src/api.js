@@ -30,9 +30,9 @@ export function search(q, limit = 50) {
   return fetchJson(`/search?q=${encodeURIComponent(q)}&limit=${limit}`)
 }
 
-async function postJson(path, body) {
+async function postJson(path, body, method = 'POST') {
   const res = await fetch(`${BASE}${path}`, {
-    method: 'POST',
+    method,
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body),
   })
@@ -46,6 +46,16 @@ export function createPoet(name, description) {
 
 export function createPoem(poetId, categoryId, title, verses) {
   return postJson('/admin/poems', { poetId, categoryId, title, verses })
+}
+
+export function updatePoem(id, poetId, categoryId, title, verses) {
+  return postJson(`/admin/poems/${id}`, { poetId, categoryId, title, verses }, 'PUT')
+}
+
+export async function deletePoem(id) {
+  const res = await fetch(`${BASE}/admin/poems/${id}`, { method: 'DELETE' })
+  if (!res.ok) throw new Error(`API error: ${res.status}`)
+  return res.json()
 }
 
 export async function chatWithPoem(poemId, message, history, onChunk) {

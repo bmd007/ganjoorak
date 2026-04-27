@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { getPoets, getPoet, createPoet, createPoem } from '../api'
+import { getPoets, getPoet, getPoem, createPoet, createPoem, updatePoem } from '../api'
 
 export default function AdminPage() {
   const navigate = useNavigate()
@@ -8,6 +8,7 @@ export default function AdminPage() {
   const [poets, setPoets] = useState([])
   const [tab, setTab] = useState('poem')
   const preselectedPoetId = searchParams.get('poetId') || ''
+  const editPoemId = searchParams.get('edit') || ''
 
   useEffect(() => {
     getPoets().then(setPoets)
@@ -15,33 +16,44 @@ export default function AdminPage() {
 
   return (
     <div className="max-w-2xl mx-auto">
-      <h1 className="text-2xl font-bold text-stone-900 dark:text-stone-100 mb-6">مدیریت</h1>
+      <h1 className="text-2xl font-bold text-stone-900 dark:text-stone-100 mb-6">
+        {editPoemId ? 'ویرایش شعر' : 'مدیریت'}
+      </h1>
 
-      <div className="flex gap-2 mb-6">
-        <button
-          onClick={() => setTab('poem')}
-          className={`px-4 py-2 rounded-xl text-sm font-medium transition-colors ${
-            tab === 'poem'
-              ? 'bg-primary-600 text-white'
-              : 'bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-400'
-          }`}
-        >
-          افزودن شعر
-        </button>
-        <button
-          onClick={() => setTab('poet')}
-          className={`px-4 py-2 rounded-xl text-sm font-medium transition-colors ${
-            tab === 'poet'
-              ? 'bg-primary-600 text-white'
-              : 'bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-400'
-          }`}
-        >
-          افزودن شاعر
-        </button>
-      </div>
+      {!editPoemId && (
+        <div className="flex gap-2 mb-6">
+          <button
+            onClick={() => setTab('poem')}
+            className={`px-4 py-2 rounded-xl text-sm font-medium transition-colors ${
+              tab === 'poem'
+                ? 'bg-primary-600 text-white'
+                : 'bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-400'
+            }`}
+          >
+            افزودن شعر
+          </button>
+          <button
+            onClick={() => setTab('poet')}
+            className={`px-4 py-2 rounded-xl text-sm font-medium transition-colors ${
+              tab === 'poet'
+                ? 'bg-primary-600 text-white'
+                : 'bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-400'
+            }`}
+          >
+            افزودن شاعر
+          </button>
+        </div>
+      )}
 
-      {tab === 'poet' && <PoetForm onCreated={poet => { setPoets(prev => [...prev, poet]); setTab('poem') }} />}
-      {tab === 'poem' && <PoemForm poets={poets} defaultPoetId={preselectedPoetId} onCreated={id => navigate(`/poem/${id}`)} />}
+      {!editPoemId && tab === 'poet' && <PoetForm onCreated={poet => { setPoets(prev => [...prev, poet]); setTab('poem') }} />}
+      {(editPoemId || tab === 'poem') && (
+        <PoemForm
+          poets={poets}
+          defaultPoetId={preselectedPoetId}
+          editPoemId={editPoemId}
+          onCreated={id => navigate(`/poem/${id}`)}
+        />
+      )}
     </div>
   )
 }
@@ -109,13 +121,34 @@ function parseCouplets(text) {
   return couplets
 }
 
-function PoemForm({ poets, defaultPoetId, onCreated }) {
+function versesToText(verses) {
+  const lines = []
+  const sorted = [...verses].sort((a, b) => a.vorder - b.vorder || a.position - b.position)
+  for (const v of sorted) {
+    lines.push(v.text)
+  }
+  return lines.join('\n')
+}
+
+function PoemForm({ poets, defaultPoetId, editPoemId, onCreated }) {
   const [poetId, setPoetId] = useState(defaultPoetId)
   const [categories, setCategories] = useState([])
   const [categoryId, setCategoryId] = useState('')
   const [title, setTitle] = useState('')
   const [versesText, setVersesText] = useState('')
   const [saving, setSaving] = useState(false)
+  const [loadingEdit, setLoadingEdit] = useState(!!editPoemId)
+
+  useEffect(() => {
+    if (!editPoemId) return
+    getPoem(editPoemId).then(data => {
+      setTitle(data.poem.title)
+      setPoetId(String(data.poet.id))
+      setCategoryId(String(data.poem.catId))
+      setVersesText(versesToText(data.verses))
+      setLoadingEdit(false)
+    })
+  }, [editPoemId])
 
   useEffect(() => {
     if (!poetId) { setCategories([]); return }
@@ -131,16 +164,31 @@ function PoemForm({ poets, defaultPoetId, onCreated }) {
     if (!isValid) return
     setSaving(true)
     try {
-      const result = await createPoem(
-        Number(poetId),
-        categoryId ? Number(categoryId) : null,
-        title.trim(),
-        couplets,
-      )
-      onCreated(result.id)
+      if (editPoemId) {
+        await updatePoem(
+          Number(editPoemId),
+          Number(poetId),
+          categoryId ? Number(categoryId) : null,
+          title.trim(),
+          couplets,
+        )
+        onCreated(Number(editPoemId))
+      } else {
+        const result = await createPoem(
+          Number(poetId),
+          categoryId ? Number(categoryId) : null,
+          title.trim(),
+          couplets,
+        )
+        onCreated(result.id)
+      }
     } finally {
       setSaving(false)
     }
+  }
+
+  if (loadingEdit) {
+    return <p className="text-center text-stone-400 py-8">در حال بارگذاری...</p>
   }
 
   return (
@@ -153,6 +201,7 @@ function PoemForm({ poets, defaultPoetId, onCreated }) {
             onChange={e => { setPoetId(e.target.value); setCategoryId('') }}
             className="w-full px-4 py-2 rounded-xl bg-stone-100 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
             required
+            disabled={!!editPoemId}
           >
             <option value="">انتخاب کنید...</option>
             {poets.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
@@ -164,7 +213,7 @@ function PoemForm({ poets, defaultPoetId, onCreated }) {
             value={categoryId}
             onChange={e => setCategoryId(e.target.value)}
             className="w-full px-4 py-2 rounded-xl bg-stone-100 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
-            disabled={!poetId}
+            disabled={!poetId || !!editPoemId}
           >
             <option value="">دسته اصلی</option>
             {categories.map(c => <option key={c.id} value={c.id}>{c.text}</option>)}
@@ -185,17 +234,17 @@ function PoemForm({ poets, defaultPoetId, onCreated }) {
 
       <div>
         <div className="flex items-center justify-between mb-1">
-          <label className="block text-sm font-medium text-stone-700 dark:text-stone-300">ابیات</label>
+          <label className="block text-sm font-medium text-stone-700 dark:text-stone-300">مصرع‌ها</label>
           <span className="text-xs text-stone-400">
-            {lineCount > 0 && `${Math.floor(lineCount / 2)} بیت`}
-            {lineCount > 0 && lineCount % 2 !== 0 && ' — مصراع آخر ناقص است'}
+            {lineCount > 0 && `${lineCount} مصرع (${Math.floor(lineCount / 2)} بیت)`}
+            {lineCount > 0 && lineCount % 2 !== 0 && ' — تعداد مصرع‌ها باید زوج باشد'}
           </span>
         </div>
         <textarea
           value={versesText}
           onChange={e => setVersesText(e.target.value)}
           rows={12}
-          placeholder={'مصراع اول بیت اول\nمصراع دوم بیت اول\nمصراع اول بیت دوم\nمصراع دوم بیت دوم\n...'}
+          placeholder={'مصرع اول\nمصرع دوم\nمصرع سوم\nمصرع چهارم\n...'}
           className="w-full px-4 py-3 rounded-xl bg-stone-100 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 text-sm leading-8 focus:outline-none focus:ring-2 focus:ring-primary-500 resize-none"
         />
       </div>
@@ -205,7 +254,7 @@ function PoemForm({ poets, defaultPoetId, onCreated }) {
         disabled={saving || !isValid}
         className="px-6 py-2 rounded-xl bg-primary-600 text-white text-sm font-medium hover:bg-primary-700 transition-colors disabled:opacity-50"
       >
-        {saving ? 'در حال ذخیره...' : 'ذخیره شعر'}
+        {saving ? 'در حال ذخیره...' : editPoemId ? 'بروزرسانی شعر' : 'ذخیره شعر'}
       </button>
     </form>
   )

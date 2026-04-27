@@ -202,6 +202,37 @@ public class GanjoorRepository {
                 .update();
     }
 
+    public void updatePoem(int id, String title, String url) {
+        jdbc.sql("UPDATE poem SET title = :title, url = :url WHERE id = :id")
+                .param("id", id)
+                .param("title", title)
+                .param("url", url)
+                .update();
+    }
+
+    public void deleteVersesByPoemId(int poemId) {
+        jdbc.sql("DELETE FROM verse WHERE poem_id = :poemId")
+                .param("poemId", poemId)
+                .update();
+    }
+
+    public void deletePoem(int id) {
+        jdbc.sql("DELETE FROM poem WHERE id = :id")
+                .param("id", id)
+                .update();
+    }
+
+    public boolean isPoemInformal(int poemId) {
+        return jdbc.sql("""
+                        SELECT COUNT(*) FROM poem p
+                        JOIN cat c ON p.cat_id = c.id
+                        JOIN poet pt ON c.poet_id = pt.id
+                        WHERE p.id = :poemId AND pt.name = 'غیررسمی'""")
+                .param("poemId", poemId)
+                .query((rs, _) -> rs.getInt(1))
+                .single() > 0;
+    }
+
     public void updateCategoryPoetId(int catId, int poetId) {
         jdbc.sql("UPDATE cat SET poet_id = :poetId WHERE id = :catId")
                 .param("poetId", poetId)

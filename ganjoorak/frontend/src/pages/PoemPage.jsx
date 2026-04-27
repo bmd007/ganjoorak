@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
-import { useParams, Link } from 'react-router-dom'
-import { getPoem, getRandomPoem } from '../api'
+import { useParams, Link, useNavigate } from 'react-router-dom'
+import { getPoem, getRandomPoem, deletePoem } from '../api'
 import { useBookmarks } from '../hooks/useBookmarks'
 import Loading from '../components/Loading'
 import Breadcrumb from '../components/Breadcrumb'
@@ -10,6 +10,7 @@ import PoemChat from '../components/PoemChat'
 
 export default function PoemPage({ random }) {
   const { id } = useParams()
+  const navigate = useNavigate()
   const [data, setData] = useState(null)
   const [loading, setLoading] = useState(true)
   const { toggle, isBookmarked } = useBookmarks()
@@ -28,7 +29,7 @@ export default function PoemPage({ random }) {
   if (loading) return <Loading />
   if (!data) return <p className="text-center py-12 text-stone-400">شعر یافت نشد</p>
 
-  const { poem, verses, poet, breadcrumb } = data
+  const { poem, verses, poet, breadcrumb, informal } = data
   const bookmarked = isBookmarked(poem.id)
 
   function handleBookmark() {
@@ -66,6 +67,28 @@ export default function PoemPage({ random }) {
             </Link>
           </div>
           <div className="flex items-center gap-1 shrink-0">
+            {informal && (
+              <>
+                <Link
+                  to={`/admin?edit=${poem.id}`}
+                  className="p-2 rounded-lg text-stone-400 hover:bg-stone-100 dark:hover:bg-stone-800 transition-colors"
+                  title="ویرایش"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                  </svg>
+                </Link>
+                <button
+                  onClick={() => { if (confirm('آیا از حذف این شعر مطمئنید؟')) deletePoem(poem.id).then(() => navigate('/')) }}
+                  className="p-2 rounded-lg text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                  title="حذف"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  </svg>
+                </button>
+              </>
+            )}
             <button
               onClick={handleBookmark}
               className={`p-2 rounded-lg transition-colors ${

@@ -2,9 +2,13 @@ package io.github.bmd007.poem.ganjoorak.controller;
 
 import io.github.bmd007.poem.ganjoorak.repository.GanjoorRepository;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.Map;
+
+import static org.springframework.http.HttpStatus.FORBIDDEN;
+import static org.springframework.http.HttpStatus.NOT_FOUND;
 
 @RestController
 @RequestMapping("/api/admin")
@@ -43,5 +47,36 @@ class AdminController {
             vorder++;
         }
         return Map.of("id", poemId);
+    }
+
+    @PutMapping("/poems/{id}")
+    Map<String, Object> updatePoem(@PathVariable int id, @RequestBody CreatePoemRequest request) {
+        requireInformal(id);
+        var slug = request.title().replaceAll("\\s+", "-");
+        repo.updatePoem(id, request.title(), "/" + slug);
+        repo.deleteVersesByPoemId(id);
+        int vorder = 0;
+        for (var couplet : request.verses()) {
+            repo.insertVerse(id, vorder, 0, couplet.first());
+            repo.insertVerse(id, vorder, 1, couplet.second());
+            vorder++;
+        }
+        return Map.of("id", id);
+    }
+
+    @DeleteMapping("/poems/{id}")
+    Map<String, Object> deletePoem(@PathVariable int id) {
+        requireInformal(id);
+        repo.deleteVersesByPoemId(id);
+        repo.deletePoem(id);
+        return Map.of("deleted", id);
+    }
+
+    private void requireInformal(int poemId) {
+        repo.findPoemById(poemId)
+                .orElseThrow(() -> new ResponseStatusException(NOT_FOUND));
+        if (!repo.isPoemInformal(poemId)) {
+            throw new ResponseStatusException(FORBIDDEN, "Only informal poems can be modified");
+        }
     }
 }
