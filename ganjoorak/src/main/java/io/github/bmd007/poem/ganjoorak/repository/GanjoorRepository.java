@@ -1,9 +1,6 @@
 package io.github.bmd007.poem.ganjoorak.repository;
 
-import io.github.bmd007.poem.ganjoorak.model.Category;
-import io.github.bmd007.poem.ganjoorak.model.Poem;
-import io.github.bmd007.poem.ganjoorak.model.Poet;
-import io.github.bmd007.poem.ganjoorak.model.Verse;
+import io.github.bmd007.poem.ganjoorak.model.*;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.stereotype.Repository;
 
@@ -248,6 +245,38 @@ public class GanjoorRepository {
         jdbc.sql("UPDATE cat SET poet_id = :poetId WHERE id = :catId")
                 .param("poetId", poetId)
                 .param("catId", catId)
+                .update();
+    }
+
+    public List<Note> findNotesByPoemId(int poemId) {
+        return jdbc.sql("SELECT id, poem_id, text, created_at FROM note WHERE poem_id = :poemId ORDER BY created_at DESC")
+                .param("poemId", poemId)
+                .query((rs, _) -> new Note(
+                        rs.getInt("id"),
+                        rs.getInt("poem_id"),
+                        rs.getString("text"),
+                        rs.getString("created_at")))
+                .list();
+    }
+
+    public int insertNote(int poemId, String text) {
+        jdbc.sql("INSERT INTO note (poem_id, text) VALUES (:poemId, :text)")
+                .param("poemId", poemId)
+                .param("text", text)
+                .update();
+        return lastInsertId();
+    }
+
+    public void updateNote(int id, String text) {
+        jdbc.sql("UPDATE note SET text = :text WHERE id = :id")
+                .param("id", id)
+                .param("text", text)
+                .update();
+    }
+
+    public void deleteNote(int id) {
+        jdbc.sql("DELETE FROM note WHERE id = :id")
+                .param("id", id)
                 .update();
     }
 

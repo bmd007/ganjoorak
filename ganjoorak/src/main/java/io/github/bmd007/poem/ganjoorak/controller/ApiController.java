@@ -91,7 +91,29 @@ class ApiController {
         result.put("category", category);
         result.put("breadcrumb", breadcrumb);
         result.put("informal", repo.isPoemInformal(poemId));
+        result.put("notes", repo.findNotesByPoemId(poemId));
         return result;
+    }
+
+    record NoteRequest(String text) {}
+
+    @PostMapping("/poems/{id}/notes")
+    Map<String, Object> addNote(@PathVariable int id, @RequestBody NoteRequest request) {
+        repo.findPoemById(id).orElseThrow(() -> new ResponseStatusException(NOT_FOUND));
+        int noteId = repo.insertNote(id, request.text());
+        return Map.of("id", noteId);
+    }
+
+    @PutMapping("/poems/{poemId}/notes/{noteId}")
+    Map<String, Object> updateNote(@PathVariable int poemId, @PathVariable int noteId, @RequestBody NoteRequest request) {
+        repo.updateNote(noteId, request.text());
+        return Map.of("id", noteId);
+    }
+
+    @DeleteMapping("/poems/{poemId}/notes/{noteId}")
+    Map<String, Object> deleteNote(@PathVariable int poemId, @PathVariable int noteId) {
+        repo.deleteNote(noteId);
+        return Map.of("deleted", noteId);
     }
 
     private List<Category> buildBreadcrumb(int categoryId) {

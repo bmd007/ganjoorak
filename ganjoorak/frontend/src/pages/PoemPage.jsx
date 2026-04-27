@@ -7,6 +7,7 @@ import Breadcrumb from '../components/Breadcrumb'
 import VerseDisplay from '../components/VerseDisplay'
 import { Arabesque, CarpetBorder, GeometricTile } from '../components/PersianOrnament'
 import PoemChat from '../components/PoemChat'
+import PoemNotes from '../components/PoemNotes'
 import { useToast } from '../components/Toast'
 
 export default function PoemPage({ random }) {
@@ -31,7 +32,7 @@ export default function PoemPage({ random }) {
   if (loading) return <Loading />
   if (!data) return <p className="text-center py-12 text-stone-400">شعر یافت نشد</p>
 
-  const { poem, verses, poet, breadcrumb, informal } = data
+  const { poem, verses, poet, breadcrumb, informal, notes } = data
   const bookmarked = isBookmarked(poem.id)
 
   function handleBookmark() {
@@ -138,6 +139,8 @@ export default function PoemPage({ random }) {
           <PoemChat key={poem.id} poemId={poem.id} />
         </div>
       </div>
+
+      <PoemNotes key={`notes-${poem.id}`} poemId={poem.id} initialNotes={notes} />
     </div>
   )
 }

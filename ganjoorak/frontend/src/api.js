@@ -58,6 +58,20 @@ export async function deletePoem(id) {
   return res.json()
 }
 
+export function addNote(poemId, text) {
+  return postJson(`/poems/${poemId}/notes`, { text })
+}
+
+export function updateNote(poemId, noteId, text) {
+  return postJson(`/poems/${poemId}/notes/${noteId}`, { text }, 'PUT')
+}
+
+export async function deleteNote(poemId, noteId) {
+  const res = await fetch(`${BASE}/poems/${poemId}/notes/${noteId}`, { method: 'DELETE' })
+  if (!res.ok) throw new Error(`API error: ${res.status}`)
+  return res.json()
+}
+
 export async function chatWithPoem(poemId, message, history, onChunk) {
   const res = await fetch(`${BASE}/poems/${poemId}/chat`, {
     method: 'POST',
