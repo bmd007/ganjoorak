@@ -44,6 +44,15 @@ export default function App() {
 
           <div className="flex items-center gap-1 shrink-0">
             <Link
+              to="/admin"
+              className="p-2 rounded-lg hover:bg-stone-100 dark:hover:bg-stone-800 transition-colors text-stone-600 dark:text-stone-400"
+              title="مدیریت"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+              </svg>
+            </Link>
+            <Link
               to="/bookmarks"
               className="p-2 rounded-lg hover:bg-stone-100 dark:hover:bg-stone-800 transition-colors text-stone-600 dark:text-stone-400"
               title="نشان‌شده‌ها"
@@ -89,6 +98,7 @@ export default function App() {
           <Route path="/poems/random" element={<PoemPage random />} />
           <Route path="/search" element={<SearchPage />} />
           <Route path="/bookmarks" element={<BookmarksPage />} />
+          <Route path="/admin" element={<AdminPage />} />
         </Routes>
       </main>
 

@@ -1,0 +1,212 @@
+import { useState, useEffect } from 'react'
+import { useNavigate, useSearchParams } from 'react-router-dom'
+import { getPoets, getPoet, createPoet, createPoem } from '../api'
+
+export default function AdminPage() {
+  const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+  const [poets, setPoets] = useState([])
+  const [tab, setTab] = useState('poem')
+  const preselectedPoetId = searchParams.get('poetId') || ''
+
+  useEffect(() => {
+    getPoets().then(setPoets)
+  }, [])
+
+  return (
+    <div className="max-w-2xl mx-auto">
+      <h1 className="text-2xl font-bold text-stone-900 dark:text-stone-100 mb-6">مدیریت</h1>
+
+      <div className="flex gap-2 mb-6">
+        <button
+          onClick={() => setTab('poem')}
+          className={`px-4 py-2 rounded-xl text-sm font-medium transition-colors ${
+            tab === 'poem'
+              ? 'bg-primary-600 text-white'
+              : 'bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-400'
+          }`}
+        >
+          افزودن شعر
+        </button>
+        <button
+          onClick={() => setTab('poet')}
+          className={`px-4 py-2 rounded-xl text-sm font-medium transition-colors ${
+            tab === 'poet'
+              ? 'bg-primary-600 text-white'
+              : 'bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-400'
+          }`}
+        >
+          افزودن شاعر
+        </button>
+      </div>
+
+      {tab === 'poet' && <PoetForm onCreated={poet => { setPoets(prev => [...prev, poet]); setTab('poem') }} />}
+      {tab === 'poem' && <PoemForm poets={poets} defaultPoetId={preselectedPoetId} onCreated={id => navigate(`/poem/${id}`)} />}
+    </div>
+  )
+}
+
+function PoetForm({ onCreated }) {
+  const [name, setName] = useState('')
+  const [description, setDescription] = useState('')
+  const [saving, setSaving] = useState(false)
+
+  async function handleSubmit(e) {
+    e.preventDefault()
+    if (!name.trim()) return
+    setSaving(true)
+    try {
+      const result = await createPoet(name.trim(), description.trim())
+      onCreated({ id: result.id, name: name.trim(), catId: result.catId })
+      setName('')
+      setDescription('')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4 bg-white dark:bg-stone-800/30 rounded-2xl border border-stone-200 dark:border-stone-700/50 p-6">
+      <div>
+        <label className="block text-sm font-medium text-stone-700 dark:text-stone-300 mb-1">نام شاعر</label>
+        <input
+          type="text"
+          value={name}
+          onChange={e => setName(e.target.value)}
+          className="w-full px-4 py-2 rounded-xl bg-stone-100 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+          required
+        />
+      </div>
+      <div>
+        <label className="block text-sm font-medium text-stone-700 dark:text-stone-300 mb-1">توضیحات</label>
+        <textarea
+          value={description}
+          onChange={e => setDescription(e.target.value)}
+          rows={3}
+          className="w-full px-4 py-2 rounded-xl bg-stone-100 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 resize-none"
+        />
+      </div>
+      <button
+        type="submit"
+        disabled={saving || !name.trim()}
+        className="px-6 py-2 rounded-xl bg-primary-600 text-white text-sm font-medium hover:bg-primary-700 transition-colors disabled:opacity-50"
+      >
+        {saving ? 'در حال ذخیره...' : 'ذخیره شاعر'}
+      </button>
+    </form>
+  )
+}
+
+function parseCouplets(text) {
+  const lines = text.split('\n').map(l => l.trim()).filter(Boolean)
+  const couplets = []
+  for (let i = 0; i < lines.length; i += 2) {
+    couplets.push({
+      first: lines[i],
+      second: i + 1 < lines.length ? lines[i + 1] : '',
+    })
+  }
+  return couplets
+}
+
+function PoemForm({ poets, defaultPoetId, onCreated }) {
+  const [poetId, setPoetId] = useState(defaultPoetId)
+  const [categories, setCategories] = useState([])
+  const [categoryId, setCategoryId] = useState('')
+  const [title, setTitle] = useState('')
+  const [versesText, setVersesText] = useState('')
+  const [saving, setSaving] = useState(false)
+
+  useEffect(() => {
+    if (!poetId) { setCategories([]); return }
+    getPoet(poetId).then(data => setCategories(data.categories))
+  }, [poetId])
+
+  const couplets = parseCouplets(versesText)
+  const lineCount = versesText.split('\n').filter(l => l.trim()).length
+  const isValid = poetId && title.trim() && lineCount >= 2 && lineCount % 2 === 0
+
+  async function handleSubmit(e) {
+    e.preventDefault()
+    if (!isValid) return
+    setSaving(true)
+    try {
+      const result = await createPoem(
+        Number(poetId),
+        categoryId ? Number(categoryId) : null,
+        title.trim(),
+        couplets,
+      )
+      onCreated(result.id)
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4 bg-white dark:bg-stone-800/30 rounded-2xl border border-stone-200 dark:border-stone-700/50 p-6">
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <label className="block text-sm font-medium text-stone-700 dark:text-stone-300 mb-1">شاعر</label>
+          <select
+            value={poetId}
+            onChange={e => { setPoetId(e.target.value); setCategoryId('') }}
+            className="w-full px-4 py-2 rounded-xl bg-stone-100 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+            required
+          >
+            <option value="">انتخاب کنید...</option>
+            {poets.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+          </select>
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-stone-700 dark:text-stone-300 mb-1">دسته‌بندی</label>
+          <select
+            value={categoryId}
+            onChange={e => setCategoryId(e.target.value)}
+            className="w-full px-4 py-2 rounded-xl bg-stone-100 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+            disabled={!poetId}
+          >
+            <option value="">دسته اصلی</option>
+            {categories.map(c => <option key={c.id} value={c.id}>{c.text}</option>)}
+          </select>
+        </div>
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-stone-700 dark:text-stone-300 mb-1">عنوان شعر</label>
+        <input
+          type="text"
+          value={title}
+          onChange={e => setTitle(e.target.value)}
+          className="w-full px-4 py-2 rounded-xl bg-stone-100 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+          required
+        />
+      </div>
+
+      <div>
+        <div className="flex items-center justify-between mb-1">
+          <label className="block text-sm font-medium text-stone-700 dark:text-stone-300">ابیات</label>
+          <span className="text-xs text-stone-400">
+            {lineCount > 0 && `${Math.floor(lineCount / 2)} بیت`}
+            {lineCount > 0 && lineCount % 2 !== 0 && ' — مصراع آخر ناقص است'}
+          </span>
+        </div>
+        <textarea
+          value={versesText}
+          onChange={e => setVersesText(e.target.value)}
+          rows={12}
+          placeholder={'مصراع اول بیت اول\nمصراع دوم بیت اول\nمصراع اول بیت دوم\nمصراع دوم بیت دوم\n...'}
+          className="w-full px-4 py-3 rounded-xl bg-stone-100 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 text-sm leading-8 focus:outline-none focus:ring-2 focus:ring-primary-500 resize-none"
+        />
+      </div>
+
+      <button
+        type="submit"
+        disabled={saving || !isValid}
+        className="px-6 py-2 rounded-xl bg-primary-600 text-white text-sm font-medium hover:bg-primary-700 transition-colors disabled:opacity-50"
+      >
+        {saving ? 'در حال ذخیره...' : 'ذخیره شعر'}
+      </button>
+    </form>
+  )
+}
