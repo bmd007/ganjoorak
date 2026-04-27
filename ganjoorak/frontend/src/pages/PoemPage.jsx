@@ -6,6 +6,7 @@ import Loading from '../components/Loading'
 import Breadcrumb from '../components/Breadcrumb'
 import VerseDisplay from '../components/VerseDisplay'
 import { Arabesque, CarpetBorder, GeometricTile } from '../components/PersianOrnament'
+import PoemChat from '../components/PoemChat'
 
 export default function PoemPage({ random }) {
   const { id } = useParams()
@@ -111,6 +112,8 @@ export default function PoemPage({ random }) {
           <Arabesque className="w-48 mx-auto text-gold-500/50 dark:text-gold-400/25" />
         </div>
       </div>
+
+      <PoemChat key={poem.id} poemId={poem.id} />
     </div>
   )
 }

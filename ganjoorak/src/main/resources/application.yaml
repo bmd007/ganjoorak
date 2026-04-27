@@ -1,6 +1,12 @@
 spring:
   application:
     name: ganjoorak
+  ai:
+    anthropic:
+      api-key: ${ANTHROPIC_API_KEY}
+      chat:
+        options:
+          model: claude-opus-4-6
   datasource:
     url: jdbc:sqlite::resource:ganjoor.s3db
     driver-class-name: org.sqlite.JDBC
