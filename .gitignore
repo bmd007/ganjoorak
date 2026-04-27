@@ -77,3 +77,4 @@ libopenal.dylib
 ganjoorak/src/main/resources/static/vite/
 ganjoorak/frontend/node_modules/
 ganjoorak/frontend/dist/
+/ganjoorak/.frontend-gradle-plugin/
