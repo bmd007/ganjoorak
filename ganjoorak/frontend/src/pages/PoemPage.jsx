@@ -92,28 +92,32 @@ export default function PoemPage({ random }) {
         </div>
       </div>
 
-      <div className="relative bg-white dark:bg-stone-800/30 rounded-2xl border border-stone-200 dark:border-stone-700/50 overflow-hidden">
-        <div className="absolute top-0 left-0 opacity-[0.04] dark:opacity-[0.03] pointer-events-none">
-          <GeometricTile className="w-32 h-32 text-primary-700" />
-        </div>
-        <div className="absolute bottom-0 right-0 opacity-[0.04] dark:opacity-[0.03] pointer-events-none rotate-180">
-          <GeometricTile className="w-32 h-32 text-primary-700" />
+      <div className="flex flex-col lg:flex-row gap-6">
+        <div className="flex-1 min-w-0 relative bg-white dark:bg-stone-800/30 rounded-2xl border border-stone-200 dark:border-stone-700/50 overflow-hidden">
+          <div className="absolute top-0 left-0 opacity-[0.04] dark:opacity-[0.03] pointer-events-none">
+            <GeometricTile className="w-32 h-32 text-primary-700" />
+          </div>
+          <div className="absolute bottom-0 right-0 opacity-[0.04] dark:opacity-[0.03] pointer-events-none rotate-180">
+            <GeometricTile className="w-32 h-32 text-primary-700" />
+          </div>
+
+          <div className="px-4 pt-4">
+            <CarpetBorder className="w-full max-w-xs mx-auto text-gold-500/40 dark:text-gold-400/20" />
+          </div>
+
+          <div className="p-6 md:p-10 relative">
+            <VerseDisplay verses={verses} />
+          </div>
+
+          <div className="px-4 pb-4">
+            <Arabesque className="w-48 mx-auto text-gold-500/50 dark:text-gold-400/25" />
+          </div>
         </div>
 
-        <div className="px-4 pt-4">
-          <CarpetBorder className="w-full max-w-xs mx-auto text-gold-500/40 dark:text-gold-400/20" />
-        </div>
-
-        <div className="p-6 md:p-10 relative">
-          <VerseDisplay verses={verses} />
-        </div>
-
-        <div className="px-4 pb-4">
-          <Arabesque className="w-48 mx-auto text-gold-500/50 dark:text-gold-400/25" />
+        <div className="lg:w-96 shrink-0">
+          <PoemChat key={poem.id} poemId={poem.id} />
         </div>
       </div>
-
-      <PoemChat key={poem.id} poemId={poem.id} />
     </div>
   )
 }

@@ -3,6 +3,7 @@ plugins {
 	id 'org.springframework.boot' version '4.0.6'
 	id 'io.spring.dependency-management' version '1.1.7'
 	id 'org.graalvm.buildtools.native' version '0.11.5'
+	id 'com.github.node-gradle.node' version '7.1.0'
 }
 
 group = 'io.github.bmd007.poem'
@@ -29,11 +30,35 @@ dependencyManagement {
 	}
 }
 
+node {
+	download = false
+	nodeProjectDir = file('frontend')
+}
+
+sourceSets {
+	main {
+		resources {
+			srcDir layout.buildDirectory.dir('frontend')
+		}
+	}
+}
+
+tasks.named('npm_run_build') {
+	inputs.dir('frontend/src')
+	inputs.file('frontend/vite.config.js')
+	inputs.file('frontend/index.html')
+	outputs.dir(layout.buildDirectory.dir('frontend/static'))
+}
+
+tasks.named('processResources') {
+	dependsOn 'npm_run_build'
+}
+
 dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-jdbc'
 	implementation 'org.springframework.boot:spring-boot-starter-webmvc'
 	developmentOnly 'org.springframework.boot:spring-boot-devtools'
-	implementation 'org.springframework.ai:spring-ai-starter-model-anthropic'
+	implementation 'org.springframework.ai:spring-ai-starter-model-google-genai'
 	runtimeOnly 'org.xerial:sqlite-jdbc'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'

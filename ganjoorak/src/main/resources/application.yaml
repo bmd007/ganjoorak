@@ -2,11 +2,22 @@ spring:
   application:
     name: ganjoorak
   ai:
-    anthropic:
-      api-key: ${ANTHROPIC_API_KEY}
-      chat:
-        options:
-          model: claude-opus-4-6
+    google:
+      genai:
+        project-id: ai-dev-tools-prod-57391
+        location: europe-west1
+        chat:
+          options:
+            model: gemini-2.5-pro
+            google-search-retrieval: true
+            temperature: 0.01
+        vertex-ai: true
+
+  main:
+    banner-mode: off
+  http:
+    client:
+      factory: jdk
   datasource:
     url: jdbc:sqlite::resource:ganjoor.s3db
     driver-class-name: org.sqlite.JDBC

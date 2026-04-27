@@ -10,7 +10,7 @@ export default defineConfig({
     },
   },
   build: {
-    outDir: '../src/main/resources/static/vite/',
+    outDir: '../build/frontend/static',
     emptyOutDir: true,
   },
 })
