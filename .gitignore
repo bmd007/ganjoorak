@@ -72,3 +72,8 @@ libopenal.dylib
 
 **/.bsp/**
 **/.scala-build/**
+
+### Ganjoorak ###
+ganjoorak/src/main/resources/static/
+ganjoorak/frontend/node_modules/
+ganjoorak/frontend/dist/
