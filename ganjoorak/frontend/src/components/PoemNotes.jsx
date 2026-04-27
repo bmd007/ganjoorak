@@ -57,16 +57,17 @@ export default function PoemNotes({ poemId, initialNotes }) {
         یادداشت‌ها
       </h3>
 
-      <form onSubmit={handleAdd} className="flex gap-2 mb-4">
-        <input
-          type="text"
+      <form onSubmit={handleAdd} className="mb-4">
+        <textarea
           value={input}
           onChange={e => setInput(e.target.value)}
+          onKeyDown={e => { if (e.key === 'Enter' && e.metaKey) handleAdd(e) }}
           placeholder="یادداشت جدید..."
           disabled={saving}
-          className="flex-1 px-4 py-2 rounded-xl bg-white dark:bg-stone-800 border border-stone-200
-                     dark:border-stone-700 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500
-                     placeholder:text-stone-400 disabled:opacity-50"
+          rows={3}
+          className="w-full px-4 py-3 rounded-xl bg-white dark:bg-stone-800 border border-stone-200
+                     dark:border-stone-700 text-sm leading-relaxed focus:outline-none focus:ring-2 focus:ring-primary-500
+                     placeholder:text-stone-400 disabled:opacity-50 resize-none mb-2"
         />
         <button
           type="submit"
@@ -83,18 +84,20 @@ export default function PoemNotes({ poemId, initialNotes }) {
           {notes.map(note => (
             <div key={note.id} className="group flex items-start gap-2 p-3 rounded-xl bg-white dark:bg-stone-800/30 border border-stone-200 dark:border-stone-700/50">
               {editingId === note.id ? (
-                <div className="flex-1 flex gap-2">
-                  <input
-                    type="text"
+                <div className="flex-1">
+                  <textarea
                     value={editText}
                     onChange={e => setEditText(e.target.value)}
-                    onKeyDown={e => { if (e.key === 'Enter') handleUpdate(note.id); if (e.key === 'Escape') setEditingId(null) }}
+                    onKeyDown={e => { if (e.key === 'Enter' && e.metaKey) handleUpdate(note.id); if (e.key === 'Escape') setEditingId(null) }}
                     autoFocus
-                    className="flex-1 px-3 py-1 rounded-lg bg-stone-100 dark:bg-stone-800 border border-stone-200
-                               dark:border-stone-700 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+                    rows={3}
+                    className="w-full px-3 py-2 rounded-lg bg-stone-100 dark:bg-stone-800 border border-stone-200
+                               dark:border-stone-700 text-sm leading-relaxed focus:outline-none focus:ring-2 focus:ring-primary-500 resize-none mb-2"
                   />
-                  <button onClick={() => handleUpdate(note.id)} className="text-primary-600 dark:text-primary-400 text-xs font-medium">ذخیره</button>
-                  <button onClick={() => setEditingId(null)} className="text-stone-400 text-xs">انصراف</button>
+                  <div className="flex gap-2">
+                    <button onClick={() => handleUpdate(note.id)} className="text-primary-600 dark:text-primary-400 text-xs font-medium">ذخیره</button>
+                    <button onClick={() => setEditingId(null)} className="text-stone-400 text-xs">انصراف</button>
+                  </div>
                 </div>
               ) : (
                 <>
